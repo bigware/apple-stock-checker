@@ -1,0 +1,143 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	<meta name="author" content="Bigware" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>Apple Store Universal Stock Checker</title>
+
+	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+	<link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+	<link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" rel="stylesheet">
+	<script src="http://code.jquery.com/jquery-2.1.3.min.js"></script>
+	<script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/handlebars.js/3.0.0/handlebars.min.js"></script>
+
+	<script src="devices.js"></script>
+	<script src="js.js"></script>
+</head>
+
+<body>
+	<div class="container" style="margin: 10px auto;">
+		<h1>Apple Stock Checker</h1>
+		<div class="row">
+			<div class="col-sm-3">
+				<div class="panel panel-success">
+					<div class="panel-heading">
+						<h3 class="panel-title">Device Search</h3>
+					</div>
+					<div class="panel-body" id="device_search">
+						<h2>Loading....</h2>
+						<div class="progress">
+							<div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100" style="width: 45%">
+								<span class="sr-only">Loading</span>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="col-sm-6">
+				<div role="alert" class="alert alert-warning hide" id="error">
+					<strong>oh Snap!</strong> <span id="error_message"></span>
+				</div>
+				<div class="panel panel-info" id="device_results">
+					<div class="panel-heading">
+						<h3 class="panel-title">Device Results</h3>
+					</div>
+					<div class="panel-body">
+						<p class="text-center"><i class="fa fa-refresh fa-5x fa-spin"></i></p>
+					</div>
+				</div>
+			</div>
+			<div class="col-sm-3">
+				<div id="store_info"></div>
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<h3 class="panel-title">Credits</h3>
+					</div>
+					<div class="panel-body text-center">
+						<p>Created with <i class="fa fa-heart fa-2" style="color: red;"></i> by <a href="http://twitter.com/bigware1" target="_blank">@bigware1</a></p>
+						<h2>
+							<a href="https://www.facebook.com/sharer/sharer.php?u=http://www.applestockchecker.com/" title="Share on Facebook" target="_blank"><i class="fa fa-facebook-square fa-2" style="color: #3b5998;"></i></a>
+							<a href="https://twitter.com/home?status=http://www.applestockchecker.com/" title="Share on Twitter" target="_blank"><i class="fa fa-twitter-square fa-2" style="color: #4099ff;"></i></a>
+							<a href="https://plus.google.com/share?url=http://www.applestockchecker.com/" title="Share on Google+" target="_blank"><i class="fa fa-google-plus-square fa-2" style="color: #d34836;"></i></a>
+						</h2>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script id="device_search_template" type="text/x-handlebars-template">
+		<div class="row" id="device_questions"></div>
+		<div class="row">
+			<div class="form-group col-xs-12">
+				<label for="zip_code" class="control-label">Zip Code</label>
+				<input type="text" class="form-control" id="zip_code" placeholder="Zip Code" value="95014">
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-xs-12">
+				<button type="submit" id="search" class="btn btn-primary btn-lg btn-block">Search</button>
+			</div>
+		</div>
+	</script>
+
+	<script id="device_questions_template" type="text/x-handlebars-template">
+		<div class="form-group col-xs-12">
+			<label for="level{{level}}">{{question_name}}</label>
+			<select id="level{{level}}" data-level="{{level}}" class="form-control device_search_redo">
+				{{#each questions}}<option value="{{@index}}">{{name}}</option>{{/each}}
+			</select>
+		</div>
+	</script>
+
+	<script id="device_results_template" type="text/x-handlebars-template">
+		<table class="table table-striped table-bordered table-hover table-condensed text-center">
+			<tr>
+				<th class="text-center">Store</th>
+				{{#each header}}<th class="text-center">{{name}}</th>{{/each}}
+			</tr>
+			{{#each stores}}
+				<tr data-index="{{@index}}" class="store_info">
+					<td><a href="#">{{storeName}}</a></td>
+					{{#each partsAvailability}}
+						{{#if storeSelectionEnabled}}
+							<td class="success"><span class="glyphicon glyphicon-ok"></span></td>
+						{{else}}
+							<td class="danger"><span class="glyphicon glyphicon-remove"></span></td>
+						{{/if}}
+					{{/each}}
+				</tr>
+			{{/each}}
+		</table>
+	</script>
+
+	<script id="store_info_template" type="text/x-handlebars-template">
+		<div class="panel panel-danger">
+			<div class="panel-heading">
+				<h3 class="panel-title">{{storeName}}</h3>
+			</div>
+			<div class="panel-body">
+				<div class="row">
+					<div class="col-xs-12">
+						<img src="{{storeImageUrl}}" title="{{storeDisplayName}}" class="img-thumbnail img-responsive" width="100%"><br>
+						<address>
+							<strong>{{storeName}}</strong><br>
+							{{address.address2}}<br>
+							{{city}}, {{state}} {{address.postalCode}}<br>
+							<abbr title="Phone">P:</abbr> {{phoneNumber}}<br>
+							<abbr title="Email">E:</abbr> {{storeEmail}}
+						</address>
+						<h4>{{storeHours.storeHoursText}}</h4>
+						{{#each storeHours.hours}}
+							{{storeDays}} {{storeTimings}}<br>
+						{{/each}}
+					</div>
+				</div>
+			</div>
+		</div>
+	</script>
+</body>
+</html>
